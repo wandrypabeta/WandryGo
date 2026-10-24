@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Whiteboard: Gereja Pembawa Perubahan & Mini Racing</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Architect Daughter & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Inter:wght@400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #2d3748;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        .font-board {
+            font-family: 'Architects Daughter', cursive;
+        }
+
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* Whiteboard Frame Effect */
+        .whiteboard-frame {
+            background: #ffffff;
+            border: 14px solid #8B5A2B;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .whiteboard-marker-tray {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 16px;
+            background: #a36224;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .marker {
+            width: 50px;
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        /* Marker pen stroke effect */
+        .marker-text {
+            color: #1e293b;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+        }
+
+        .custom-btn {
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 0 ease;
+        }
+
+        .custom-btn:active {
+            transform: translateY(4px);
+            box-shadow: none !important;
+        }
+
+        /* Smooth Canvas */
+        canvas {
+            touch-action: none;
+        }
+
+        /* Grid Pattern for Whiteboard */
+        .grid-bg {
+            background-size: 30px 30px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2 md:p-6 bg-slate-900 text-slate-100">
+
+    <!-- TOP HEADER / TOOLBAR -->
+    <header class="max-w-6xl w-full mx-auto mb-4 flex flex-wrap justify-between items-center gap-3 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="bg-amber-500 text-slate-900 font-bold p-2.5 rounded-lg text-lg">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg md:text-xl text-white tracking-wide">KUIS INTERAKTIF WHITEBOARD</h1>
+                <p class="text-xs text-amber-400 font-semibold">Bab 1: Gereja Wujud Karya Allah yang Membawa Perubahan (SMPN 12 Makassar)</p>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="copyShareableLink()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs md:text-sm font-semibold py-2 px-3 rounded-lg flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-share-nodes"></i> Salin Link Game
+            </button>
+            <button onclick="exportResultJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm font-semibold py-2 px-3 rounded-lg flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-download"></i> Unduh Hasil Kuis
+            </button>
+            <button onclick="toggleFullscreen()" class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg text-sm">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GAME CONTAINER (WHITEBOARD SCREEN) -->
+    <main class="max-w-6xl w-full mx-auto flex-1 flex flex-col justify-center my-2">
+        <div class="whiteboard-frame grid-bg p-4 md:p-8 min-h-[550px] flex flex-col justify-between text-slate-800">
+            
+            <!-- SCREENS WRAPPER -->
+            <div id="screen-container" class="w-full flex-1 flex flex-col justify-center items-center">
+                
+                <!-- 1. START / LEVEL SELECTION SCREEN -->
+                <div id="start-screen" class="w-full max-w-3xl text-center space-y-6 my-auto">
+                    <div class="border-b-2 border-dashed border-slate-300 pb-4">
+                        <span class="bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Deep Learning PAK Class IX</span>
+                        <h2 class="font-board text-3xl md:text-5xl font-bold text-slate-800 mt-2">Gereja & Pembaharuan</h2>
+                        <p class="text-slate-600 text-sm md:text-base mt-2 font-medium">Uji pemahamanmu lewat narasi HOTS + Mini Game Balap Mobil Interaktif!</p>
+                    </div>
+
+                    <!-- Level Selector -->
+                    <div class="space-y-3">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Pilih Tingkat Kesulitan (10 Soal Narasi HOTS/Level):</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <button onclick="selectLevel('easy')" class="custom-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-6 rounded-xl border-b-4 border-emerald-700 flex flex-col items-center gap-1 shadow-md">
+                                <span class="text-lg"><i class="fa-solid fa-seedling"></i> MUDAH</span>
+                                <span class="text-xs font-normal opacity-90">Pemahaman Konsep & Alkitab</span>
+                            </button>
+                            <button onclick="selectLevel('medium')" class="custom-btn bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 px-6 rounded-xl border-b-4 border-amber-700 flex flex-col items-center gap-1 shadow-md">
+                                <span class="text-lg"><i class="fa-solid fa-fire"></i> SEDANG</span>
+                                <span class="text-xs font-normal opacity-90">Analisis Kasus & Peran Remaja</span>
+                            </button>
+                            <button onclick="selectLevel('hard')" class="custom-btn bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 px-6 rounded-xl border-b-4 border-rose-800 flex flex-col items-center gap-1 shadow-md">
+                                <span class="text-lg"><i class="fa-solid fa-bolt"></i> SULIT</span>
+                                <span class="text-xs font-normal opacity-90">Evaluasi & Solusi Transformatif</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Player Name Input -->
+                    <div class="max-w-md mx-auto pt-2">
+                        <label class="block text-left text-xs font-bold text-slate-600 mb-1">Nama Siswa / Kelompok:</label>
+                        <input type="text" id="player-name" placeholder="Masukkan nama..." class="w-full px-4 py-2.5 rounded-lg border-2 border-slate-300 focus:border-amber-500 focus:outline-none font-semibold text-slate-800 text-center bg-slate-50">
+                    </div>
+                </div>
+
+                <!-- 2. RACING MINIGAME SCREEN (Transisi Sebelum Soal) -->
+                <div id="race-screen" class="w-full hidden flex-col items-center space-y-4 my-auto">
+                    <div class="text-center">
+                        <span class="font-pixel text-xs text-rose-600 font-bold bg-rose-100 px-3 py-1 rounded-full border border-rose-300 animate-pulse">MINI GAME TRANSISI</span>
+                        <h3 class="font-board text-2xl md:text-3xl font-bold text-slate-800 mt-1">Selesaikan Balapan untuk Membuka Soal <span id="next-q-num">1</span>!</h3>
+                        <p class="text-xs text-slate-500">Gunakan tombol Panah / Touch Screen untuk mengendalikan mobil dan hindari rintangan!</p>
+                    </div>
+
+                    <!-- Race Canvas Container -->
+                    <div class="relative rounded-xl border-4 border-slate-800 overflow-hidden shadow-2xl bg-slate-800 w-full max-w-xl aspect-[16/9] flex items-center justify-center">
+                        <canvas id="raceCanvas" class="w-full h-full"></canvas>
+                        
+                        <!-- Overlay Touch Controls for Mobile -->
+                        <div class="absolute bottom-2 left-2 right-2 flex justify-between items-center md:hidden pointer-events-auto">
+                            <button id="btn-left" class="bg-amber-500 active:bg-amber-700 text-white font-bold p-4 rounded-full opacity-80 shadow-lg text-xl w-14 h-14 flex items-center justify-center">◀</button>
+                            <span class="text-white text-xs bg-slate-900/80 px-2 py-1 rounded">Kemudikan!</span>
+                            <button id="btn-right" class="bg-amber-500 active:bg-amber-700 text-white font-bold p-4 rounded-full opacity-80 shadow-lg text-xl w-14 h-14 flex items-center justify-center">▶</button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center w-full max-w-xl text-xs text-slate-600 font-bold">
+                        <span>Jarak Tersisa: <span id="race-distance" class="text-amber-600 font-bold">100</span>m</span>
+                        <span>Skor Balap: <span id="race-score" class="text-emerald-600 font-bold">0</span></span>
+                    </div>
+                </div>
+
+                <!-- 3. QUESTION QUIZ SCREEN -->
+                <div id="quiz-screen" class="w-full max-w-4xl hidden flex-col space-y-4 my-auto">
+                    <!-- Progress & Status Header -->
+                    <div class="flex justify-between items-center border-b-2 border-slate-200 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span id="level-badge" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Level: Mudah</span>
+                            <span class="text-xs font-bold text-slate-500">Soal <span id="current-question-num" class="text-amber-600 text-base">1</span> dari 10</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <span class="text-[10px] block text-slate-400 font-bold uppercase">Skor Sementara</span>
+                                <span id="current-score" class="text-xl font-black text-emerald-600 font-mono">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question Narrative Card (Whiteboard Marker Box) -->
+                    <div class="bg-amber-50/60 border-2 border-amber-200/80 p-4 md:p-6 rounded-2xl shadow-inner relative">
+                        <span class="absolute -top-3 left-6 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Studi Kasus HOTS</span>
+                        <p id="question-text" class="font-board text-base md:text-xl font-bold text-slate-800 leading-relaxed mt-1">
+                            Loading pertanyaan...
+                        </p>
+                    </div>
+
+                    <!-- Multiple Choice Options -->
+                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                        <!-- Dynamic Button Injection -->
+                    </div>
+
+                    <!-- Explanation Box (Shows after answer) -->
+                    <div id="explanation-box" class="hidden bg-slate-100 border-l-4 border-indigo-500 p-4 rounded-r-xl space-y-1">
+                        <h4 id="explanation-title" class="font-bold text-sm text-indigo-900">Penjelasan Teologis & Analisis:</h4>
+                        <p id="explanation-text" class="text-xs md:text-sm text-slate-700 leading-normal"></p>
+                        <button onclick="proceedToNextStep()" class="mt-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+                            Lanjutkan <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. FINAL SCORE SCREEN -->
+                <div id="score-screen" class="w-full max-w-2xl hidden flex-col items-center text-center space-y-6 my-auto">
+                    <div class="space-y-2">
+                        <div class="inline-block p-3 bg-amber-100 text-amber-600 rounded-full text-3xl mb-1">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h2 class="font-board text-3xl md:text-4xl font-bold text-slate-800">Kuis Selesai! Nilai Akhir Anda</h2>
+                        <p class="text-xs text-slate-500 font-semibold" id="player-display-name">Nama Siswa: -</p>
+                    </div>
+
+                    <!-- Score Card -->
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 md:p-8 rounded-2xl border-4 border-amber-400 shadow-2xl w-full max-w-md relative overflow-hidden">
+                        <div class="text-6xl md:text-7xl font-black font-mono text-amber-400 my-2" id="final-score-val">0</div>
+                        <div class="text-xs uppercase tracking-widest text-slate-300 font-semibold" id="grade-predicate">PREDIKAT: -</div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-700 grid grid-cols-2 gap-2 text-xs text-slate-300">
+                            <div>Jawaban Benar: <span id="correct-count" class="text-emerald-400 font-bold">0</span>/10</div>
+                            <div>Bonus Balapan: <span id="race-bonus-val" class="text-amber-400 font-bold">0</span> pts</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap justify-center gap-3 w-full">
+                        <button onclick="restartGame()" class="custom-btn bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl border-b-4 border-amber-700 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Main Lagi
+                        </button>
+                        <button onclick="exportResultJSON()" class="custom-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl border-b-4 border-emerald-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-file-export"></i> Unduh Laporan Nilai
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Tray Graphic -->
+            <div class="whiteboard-marker-tray">
+                <div class="marker bg-red-600"></div>
+                <div class="marker bg-blue-600"></div>
+                <div class="marker bg-emerald-600"></div>
+                <div class="marker bg-slate-800"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER INFO -->
+    <footer class="max-w-6xl w-full mx-auto text-center text-[11px] text-slate-500 mt-2">
+        <p>UPT SPF SMPN 12 Makassar &copy; 2026 | Guru PAK: Wandri Pabeta Turu'padang, S.Pd | Media Pembelajaran Interaktif Deep Learning</p>
+    </footer>
+
+    <!-- MESSAGE BOX / TOAST NOTIFICATION -->
+    <div id="toast-msg" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 hidden transition-all z-50 flex items-center gap-3 text-xs md:text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
+        <span id="toast-text">Pesan pemberitahuan...</span>
+    </div>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        /* ==========================================================================
+           1. DATA SOAL HOTS (Mudah, Sedang, Sulit - Masing-masing 10 Soal Narasi)
+           ========================================================================== */
+        const quizDatabase = {
+            easy: [
+                {
+                    q: "Di kelas IX SMPN 12 Makassar, Rina belajar bahwa kata 'Ekklesia' berasal dari bahasa Yunani yang berarti 'dipanggil keluar'. Ketika Rina melihat teman-temannya saling merundung di grup chat kelas, makna 'Ekklesia' yang paling tepat diwujudkan oleh Rina adalah...",
+                    options: [
+                        "A. Mengabaikan grup chat agar tidak terlibat konflik",
+                        "B. Membalas perundung dengan kata-kata yang lebih kasar",
+                        "C. Dipanggil keluar dari kebiasaan buruk untuk menjadi pembawa damai dan menegur dengan kasih",
+                        "D. Keluar dari gereja karena merasa kecewa pada lingkungan"
+                    ],
+                    answer: 2,
+                    exp: "Ekklesia berarti dipanggil keluar dari kegelapan menuju terang Allah (1 Petrus 2:9). Remaja Kristen dipanggil keluar dari kebiasaan perundungan/negatif untuk menjadi pembawa damai."
+                },
+                {
+                    q: "Dalam 2 Korintus 5:17 tertulis: 'Siapa yang ada di dalam Kristus, ia adalah ciptaan baru'. Markus sering merasa rendah diri karena berasal dari keluarga sederhana. Pemaknaan ayat ini bagi rasa percaya diri Markus adalah...",
+                    options: [
+                        "A. Kehormatan Markus ditentukan oleh berapa banyak barang mewah yang ia miliki",
+                        "B. Identitas Markus dipulihkan dalam Kristus sehingga ia berharga dan memiliki tujuan hidup baru",
+                        "C. Markus harus berpura-pura menjadi orang kaya agar dihargai",
+                        "D. Ciptaan baru hanya berlaku bagi orang dewasa yang sudah dibaptis"
+                    ],
+                    answer: 1,
+                    exp: "Menjadi ciptaan baru berarti identitas dan harga diri kita dipulihkan oleh Allah dalam Kristus, bukan diukur dari materi atau status sosial."
+                },
+                {
+                    q: "Gereja bukan sekadar gedung megah berpintu tinggi, melainkan persekutuan umat beriman. Jika sebuah bangunan gereja rusak terkena bencana, manakah pernyataan yang paling tepat mengenai keberadaan gereja tersebut?",
+                    options: [
+                        "A. Gereja tersebut telah hancur dan tidak ada lagi",
+                        "B. Gereja tetap ada dan hidup di dalam persekutuan orang-orang percaya yang saling menolong",
+                        "C. Peribadatan tidak dapat dilakukan lagi selamanya",
+                        "D. Tuhan tidak lagi hadir di tempat tersebut"
+                    ],
+                    answer: 1,
+                    exp: "Hakekat gereja adalah persekutuan umat (orangnya/tubuh Kristus), bukan sebatas fisik bangunan gedung."
+                },
+                {
+                    q: "Yeremia 29:11 menegaskan bahwa Allah merancangkan masa depan yang penuh harapan. Ketika remaja menghadapi rasa cemas akan masa depan sekolahnya, sikap iman yang benar adalah...",
+                    options: [
+                        "A. Pasrah tanpa perlu belajar dan berusaha",
+                        "B. Percaya pada rancangan damai sejahtera Allah sambil aktif mengembangkan potensi diri",
+                        "C. Mengandalkan jimat dan ramalan nasib di media sosial",
+                        "D. Menyalahkan keadaan dan berputus asa"
+                    ],
+                    answer: 1,
+                    exp: "Rancangan Allah yang penuh harapan direspons dengan iman yang aktif melalui kerja keras, belajar, dan doa."
+                },
+                {
+                    q: "Salah satu ciri gereja yang membawa perubahan di era digital adalah memanfaatkan teknologi untuk kebaikan. Contoh tindakan nyata remaja gereja yang sesuai dengan hal ini adalah...",
+                    options: [
+                        "A. Menggunakan HP untuk bermain game hingga lupa waktu ibadah",
+                        "B. Menyebarkan ulang berita hoaks yang belum jelas kebenarannya",
+                        "C. Membuat konten inspiratif, pesan motivasi Alkitab, dan media pelayanan kreatif",
+                        "D. Memusuhi teman yang berbeda pandangan di kolom komentar"
+                    ],
+                    answer: 2,
+                    exp: "Transformasi pelayanan digital diwujudkan dengan memanfaatkan teknologi secara bijak untuk menyebarkan nilai kebaikan dan kebenaran."
+                },
+                {
+                    q: "Tuhan Yesus menyebut orang percaya sebagai 'Garam dan Terang Dunia' (Matius 5:13-16). Fungsi utama garam adalah memberi rasa dan mencegah pembusukan. Peran ini bagi remaja di sekolah berarti...",
+                    options: [
+                        "A. Menyebabkan suasana kelas menjadi panas dan penuh pertengkaran",
+                        "B. Membawa pengaruh positif dan mencegah tindakan degradasi moral di lingkungan teman",
+                        "C. Menjauhi semua teman yang tidak seiman",
+                        "D. Hanya berbuat baik ketika dilihat oleh guru"
+                    ],
+                    answer: 1,
+                    exp: "Garam mencegah pembusukan, artinya remaja Kristen hadir untuk mencegah pengaruh buruk dan memberi dampak positif bagi sekitar."
+                },
+                {
+                    q: "Perubahan zaman berlangsung sangat cepat. Sikap gereja yang dinamis dalam merespons perubahan zaman tanpa mengorbankan kebenaran Firman adalah...",
+                    options: [
+                        "A. Menolak semua kemajuan teknologi karena dianggap dari dunia",
+                        "B. Mengikuti semua tren dunia tanpa menyaring nilai-nilainya",
+                        "C. Terus memperbarui metode pelayanan agar relevan dengan kebutuhan zaman",
+                        "D. Menutup diri dari masyarakat luar"
+                    ],
+                    answer: 2,
+                    exp: "Gereja yang dinamis bersikap kontekstual: memperbarui cara/metode pelayanan sesuai zaman namun tetap berpegang teguh pada kebenaran Alkitab."
+                },
+                {
+                    q: "Di kota Makassar yang majemuk, Daniel tinggal di lingkungan pemukiman yang beraneka ragam suku dan agama. Sikap gereja yang membawa pembaharuan kerukunan adalah...",
+                    options: [
+                        "A. Membangun tembok pembatas agar tidak bergaul dengan tetangga",
+                        "B. Aktif bekerja sama dalam kegiatan gotong royong dan menjunjung toleransi",
+                        "C. Memaksa tetangga untuk mengikuti keyakinannya",
+                        "D. Acuh tak acuh terhadap kegiatan kemasyarakatan"
+                    ],
+                    answer: 1,
+                    exp: "Wujud karya Allah yang membawa perubahan tercermin melalui sikap hidup toleran, peduli sosial, dan gotong royong di tengah masyarakat plural."
+                },
+                {
+                    q: "Alkitab mencatat dalam Kisah Para Rasul bahwa jemaat perdana disukai semua orang karena suka berbagi. Nilai utama yang dihidupi jemaat tersebut adalah...",
+                    options: [
+                        "A. Egoisme dan penumpukan kekayaan pribadi",
+                        "B. Kasih persaudaraan (Philadelphia) dan kepedulian sosial",
+                        "C. Persaingan status antar anggota",
+                        "D. Keinginan untuk menguasai pemerintahan"
+                    ],
+                    answer: 1,
+                    exp: "Jemaat mula-mula membawa perubahan sosial karena hidup dalam kasih, kepedulian, dan kebersamaan saling berbagi."
+                },
+                {
+                    q: "Setiap hari Minggu, Sarah bertugas menjadi pemandu lagu di persekutuan remaja. Sikap hati yang benar dalam melayani di gereja adalah...",
+                    options: [
+                        "A. Ingin dipuji dan menjadi pusat perhatian teman-teman",
+                        "B. Melayani dengan rendah hati demi memuliakan nama Tuhan",
+                        "C. Menuntut imbalan materi dari pengurus gereja",
+                        "D. Merasa lebih suci dibanding teman yang tidak melayani"
+                    ],
+                    answer: 1,
+                    exp: "Pelayanan dalam gereja merupakan wujud syukur atas karya keselamatan Allah, dilakukan dengan rendah hati untuk kemuliaan Tuhan."
+                }
+            ],
+            medium: [
+                {
+                    q: "Sebuah gereja lokal di Makassar dikelilingi oleh pemukiman warga yang mengalami kesulitan air bersih akibat kemarau. Pengurus gereja memutuskan membuka sumur bor gereja untuk digunakan oleh seluruh warga tanpa memandang perbedaan agama. Analisis yang paling tepat terhadap tindakan gereja ini adalah...",
+                    options: [
+                        "A. Gereja membuang-buang anggaran yang seharusnya hanya untuk anggota sendiri",
+                        "B. Gereja sedang mewujudkan peran nyata sebagai agen pembaharuan dan saluran berkat Allah bagi lingkungan",
+                        "C. Gereja melanggar aturan karena mencampuri urusan pemerintah daerah",
+                        "D. Tindakan tersebut tidak ada hubungannya dengan pelayanan iman"
+                    ],
+                    answer: 1,
+                    exp: "Gereja yang membawa perubahan tidak eksklusif (menutup diri), melainkan menjadi saluran kasih dan rahmat Allah bagi seluruh masyarakat sekitar."
+                },
+                {
+                    q: "David adalah siswa kelas IX yang sering melihat konten ujaran kebencian di media sosial yang mengatasnamakan agama. Berdasarkan semangat 2 Korintus 5:17 tentang 'manusia baru', gagasan aksi nyata yang paling solutif dilakukan David adalah...",
+                    options: [
+                        "A. Melaporkan dan membalas akun tersebut dengan caci maki yang serupa",
+                        "B. Merancang kampanye literasi digital dan menyebarkan konten narasi damai serta toleransi",
+                        "C. Membiarkan saja karena merasa ujaran kebencian sudah menjadi hal lumrah",
+                        "D. Menghapus semua teman dari agama lain di daftar pertemanannya"
+                    ],
+                    answer: 1,
+                    exp: "Manusia baru merespons kejahatan dengan kebaikan secara kreatif. Menyebarkan narasi damai dan literasi digital adalah tindakan pembaharuan yang konkret."
+                },
+                {
+                    q: "Banyak pemuda di suatu daerah terjerat judi online dan penyalahgunaan narkoba. Jika Anda diminta merancang program pelayanan remaja gereja yang transformatif, langkah strategis yang paling tepat adalah...",
+                    options: [
+                        "A. Mengucilkan pemuda yang terlibat agar tidak mencemari nama baik gereja",
+                        "B. Membuka pusat konseling remaja, pelatihan keterampilan digital, dan komunitas olahraga inklusif",
+                        "C. Hanya mengadakan doa tanpa melakukan aksi pendampingan sosial",
+                        "D. Menyalahkan orang tua para pemuda tersebut secara terbuka"
+                    ],
+                    answer: 1,
+                    exp: "Pembaharuan gereja harus holistik: menggabungkan pendampingan spiritual, konseling, dan wadah kegiatan positif (keterampilan/olahraga)."
+                },
+                {
+                    q: "Toleransi di UPT SPF SMPN 12 Makassar sangat tinggi. Saat perayaan hari besar agama lain, bagaimana remaja Kristen dapat menunjukkan peran sebagai bagian dari gereja yang membawa perubahan damai?",
+                    options: [
+                        "A. Mengikuti ritual ibadah agama lain agar dianggap toleran",
+                        "B. Menjaga ketertiban, memberikan ucapan selamat dengan santun, serta membantu kelancaran kegiatan",
+                        "C. Acuh tak acuh dan mengisolasi diri di dalam kelas",
+                        "D. Mengkritik perayaan tersebut di media sosial"
+                    ],
+                    answer: 1,
+                    exp: "Toleransi sejati adalah menghargai dan mendukung ketertiban sesama tanpa mengorbankan atau mencampuradukkan iman keyakinan pribadi."
+                },
+                {
+                    q: "Yeremia 29:7 menyatakan: 'Usahakanlah kesejahteraan kota ke mana kamu Aku buang... sebab kesejahteraannya adalah kesejahteraanmu.' Implikasi ayat ini bagi gereja di era modern adalah...",
+                    options: [
+                        "A. Gereja hanya fokus pada urusan ibadah di dalam gedung saja",
+                        "B. Gereja wajib terlibat aktif dalam menjaga kelestarian lingkungan, keadilan sosial, dan kesejahteraan umum",
+                        "C. Umat Kristen tidak perlu peduli pada politik dan kebijakan publik",
+                        "D. Kesejahteraan hanya berlaku untuk kelompok intern gereja"
+                    ],
+                    answer: 1,
+                    exp: "Gereja dipanggil untuk aktif mengusahakan kesejahteraan umum (publik) di mana pun Allah menempatkannya."
+                },
+                {
+                    q: "Di era disrupsi teknologi, ibadah streaming menjadi populer. Namun, sebagian remaja menjadi malas bersekutu secara langsung. Evaluasi teologis yang paling tepat terhadap fenomena ini adalah...",
+                    options: [
+                        "A. Ibadah fisik tidak lagi penting karena teknologi sudah menggantikan persekutuan",
+                        "B. Teknologi adalah sarana penunjang, namun persekutuan tatap muka (perjumpaan relasional) tetap inti dari kehidupan tubuh Kristus",
+                        "C. Gereja harus melarang penggunaan internet dalam peribadatan",
+                        "D. Ibadah online lebih suci dibanding ibadah tatap muka"
+                    ],
+                    answer: 1,
+                    exp: "Teknologi adalah alat bantu (penunjang), tetapi persekutuan riil (interaksi & kepedulian antar sesama anggota tubuh Kristus) tetap tidak terpisahkan."
+                },
+                {
+                    q: "Seorang remaja bernama Yosua melihat temannya curang saat ujian sekolah. Jika Yosua menghidupi nilai integritas sebagai ciptaan baru, tindakan paling bijaksana yang harus diambil adalah...",
+                    options: [
+                        "A. Mengikuti tindakan curang tersebut agar mendapat nilai tinggi",
+                        "B. Menolak ikut curang dan menegur teman secara pribadi dengan jujur serta kasih",
+                        "C. Memusuhi dan memusnahkan barang milik teman tersebut",
+                        "D. Menyebarkan keburukan temannya ke seluruh sekolah"
+                    ],
+                    answer: 1,
+                    exp: "Integritas ciptaan baru tercermin dari kejujuran pribadi dan keberanian menegur secara konstruktif demi kebaikan bersama."
+                },
+                {
+                    q: "Perubahan iklim dan krisis lingkungan menjadi ancaman global. Bagaimana gereja dapat mewujudkan teologi pembaharuan ciptaan di tengah krisis lingkungan ini?",
+                    options: [
+                        "A. Menganggap kerusakan bumi sebagai tanda akhir zaman yang tidak perlu diperbaiki",
+                        "B. Menggalakkan aksi 'Gereja Hijau' (Green Church), pengurangan sampah plastik, dan penanaman pohon",
+                        "C. menyerahkan seluruhnya kepada organisasi non-pemerintah",
+                        "D. Membuang sampah sembarangan di area tempat ibadah"
+                    ],
+                    answer: 1,
+                    exp: "Tugas pemeliharaan ciptaan adalah mandat Allah. Gereja membawa perubahan melalui tanggung jawab ekologis (pelihara alam)."
+                },
+                {
+                    q: "Dalam sebuah kelompok diskusi PAK, terjadi perbedaan pendapat yang tajam mengenai program remaja. Roni memilih mendengarkan dengan tenang dan mencari solusi bersama. Sikap Roni mencerminkan dimensi Profil Pelajar Pancasila yaitu...",
+                    options: [
+                        "A. Kemandirian tanpa peduli orang lain",
+                        "B. Kolaborasi, penalaran kritis, dan komunikasi yang membangun",
+                        "C. Sikap pasif dan tidak berpendirian",
+                        "D. Keinginan menguasai kelompok"
+                    ],
+                    answer: 1,
+                    exp: "Mendengarkan, menganalisis tanpa emosi, dan mencari solusi bersama adalah wujud kolaborasi dan penalaran kritis dalam iman."
+                },
+                {
+                    q: "Gereja yang membiarkan anggotanya hidup dalam diskriminasi suku dan status ekonomi gagal menjadi agen pembaharuan karena...",
+                    options: [
+                        "A. Kristus telah meruntuhkan tembok pemisah dan menyatukan semua orang dalam kasih-Nya (Galatia 3:28)",
+                        "B. Perbedaan suku memang tidak bisa disatukan",
+                        "C. Gereja harus mengutamakan orang kaya terlebih dahulu",
+                        "D. Diskriminasi adalah hal yang wajar dalam organisasi"
+                    ],
+                    answer: 0,
+                    exp: "Dalam Kristus tidak ada lagi diskriminasi suku, ras, atau status sosial; semua satu di dalam tubuh Kristus."
+                }
+            ],
+            hard: [
+                {
+                    q: "Studi Kasus: Di sebuah kota, perkembangan kecerdasan buatan (AI) dan otomatisasi menyebabkan banyak pemutusan hubungan kerja (PHK) di kalangan orang tua remaja. Komunitas remaja gereja merancang program responsif. Mana rancangan aksi yang paling komprehensif dan transformatif sesuai prinsip Deep Learning?",
+                    options: [
+                        "A. Membuat petisi menuntut penutupan seluruh teknologi kecerdasan buatan",
+                        "B. Mengintegrasikan posko bantuan pangan darurat dengan akademi keterampilan digital dan kewirausahaan kreatif bagi keluarga terdampak",
+                        "C. Meminta anggota yang terkena PHK untuk berpindah kota saja",
+                        "D. Menyelenggarakan hiburan konser musik tanpa bantuan konkret"
+                    ],
+                    answer: 1,
+                    exp: "Solusi transformatif memadukan karitas (bantuan langsung) dengan pemberdayaan jangka panjang (keterampilan digital & wirausaha) sesuai tantangan zaman."
+                },
+                {
+                    q: "Analisis Kritis: Mengapa konsep 'pembaharuan' dalam 2 Korintus 5:17 harus dimulai dari pembaruan batiniah (spiritual) sebelum melakukan transformasi sosial di masyarakat?",
+                    options: [
+                        "A. Karena perubahan sosial tidak memerlukan komitmen moral",
+                        "B. Karena tanpa pembaruan hati oleh Kristus, aksi sosial rawan terjebak pada kesombongan diri dan motivasi yang rapuh",
+                        "C. Karena pembaruan batiniah adalah satu-satunya hal yang dipedulikan Allah",
+                        "D. Karena masyarakat tidak melihat perbuatan melainkan hanya kata-kata"
+                    ],
+                    answer: 1,
+                    exp: "Transformasi luar (sosial) yang sejati dan berkelanjutan bersumber dari pembaruan batin (akar spiritual) di dalam Kristus."
+                },
+                {
+                    q: "Di sekolah negeri seperti SMPN 12 Makassar, remaja Kristen berada dalam posisi minoritas. Bagaimana teologi 'Garam dan Terang' dirumuskan secara kritis agar remaja tidak terjebak pada eksklusivisme maupun kompromi iman yang dangkal?",
+                    options: [
+                        "A. Dengan menjauhi pergaulan lintas iman agar iman tetap murni",
+                        "B. Dengan melebur dan mengikuti semua kebiasaan mayoritas meskipun melanggar firman",
+                        "C. Dengan bersikap inklusif dialogis: aktif bekerja sama dalam kebaikan umum sambil konsisten menampilkan karakter Kristiani (kasih, jujur, santun)",
+                        "D. Dengan selalu memperdebatkan kebenaran agama di tempat umum"
+                    ],
+                    answer: 2,
+                    exp: "Inklusif dialogis memungkinkan remaja menjadi saksi Kristus yang berkarakter tanpa menjadi eksklusif atau kehilangan identitas iman."
+                },
+                {
+                    q: "Yeremia berkhotbah kepada bangsa Israel yang berada dalam pembuangan di Babel—lingkungan yang asing dan penuh tekanan kultural. Analogi situasi ini dengan tantangan Generasi Z di dunia maya saat ini adalah...",
+                    options: [
+                        "A. Remaja Z harus mengisolasi diri total dari internet",
+                        "B. Remaja Z hidup di 'ruang digital' yang penuh arus budaya hedonisme, sehingga dipanggil menjadi agen pembawa nilai kebenaran dan harapan",
+                        "C. Budaya digital sepenuhnya jahat dan tidak ada harapan",
+                        "D. Pembuangan Babel tidak ada relevansinya dengan masa kini"
+                    ],
+                    answer: 1,
+                    exp: "Dunia maya adalah 'ruang pembuangan modern' di mana remaja Kristen dipanggil tidak untuk larut, melainkan membawa dampak pembaharuan."
+                },
+                {
+                    q: "Sebuah gereja cenderung mempertahankan tradisi kuno yang tidak lagi dipahami oleh generasi muda, menyebabkan kemunduran jumlah remaja. Evaluasi dan rekomendasi pembaruan eklesiologis yang tepat adalah...",
+                    options: [
+                        "A. Membuang seluruh Alkitab dan menggantinya dengan buku populer",
+                        "B. Membedakan antara 'esensi iman' yang tidak boleh berubah dengan 'metode/budaya' yang harus adaptif relevan bagi Gen Z",
+                        "C. Membiarkan remaja pergi ke tempat lain tanpa ada upaya dialog",
+                        "D. Memaksa remaja mengikuti tradisi lama tanpa penjelasan"
+                    ],
+                    answer: 1,
+                    exp: "Eklesiologi transformatif membedakan esensi Kebenaran (tetap) dan metode/kemasan pelayanan (fleksibel & adaptif sesuai jaman)."
+                },
+                {
+                    q: "Mantan pecandu narkoba yang telah bertobat ingin bergabung dalam persekutuan remaja, namun beberapa pengurus menolak karena takut merusak citra. Kebijakan ini bertentangan dengan hakekat gereja sebagai...",
+                    options: [
+                        "A. Komunitas elit yang hanya menerima orang tanpa cacat moral",
+                        "B. 'Rumah Sakit Rohani' tempat penyembuhan dan penerimaan ciptaan baru di dalam Kristus",
+                        "C. Lembaga hukum yang menghakimi kesalahan masa lalu",
+                        "D. Klub sosial eksklusif"
+                    ],
+                    answer: 1,
+                    exp: "Gereja adalah komunitas pemulihan (Rumah Sakit Rohani) yang menerima setiap orang yang mau bertobat menjadi ciptaan baru."
+                },
+                {
+                    q: "Sintesis HOTS: Hubungkan pemikiran antara Yeremia 29:11 (Masa depan penuh harapan) dan tugas remaja dalam menghadapi bonus demografi Indonesia 2045!",
+                    options: [
+                        "A. Remaja cukup menunggu tahun 2045 tanpa persiapan khusus",
+                        "B. Janji masa depan Allah direspon dengan penyiapan kapasitas intelektual, spiritual, dan karakter kepemimpinan berintegritas tinggi sejak SMP",
+                        "C. Bonus demografi pasti membawa bencana bagi umat Kristen",
+                        "D. Masa depan hanya ditentukan oleh garis keturunan"
+                    ],
+                    answer: 1,
+                    exp: "Iman akan masa depan penuh harapan dari Allah menggerakkan persiapan diri yang matang (intelektual & spiritual) untuk menyongsong masa depan."
+                },
+                {
+                    q: "Ketika terjadi bencana alam di suatu daerah, dua kelompok remaja gereja merespons. Kelompok A membagikan alkitab saja, Kelompok B membagikan alkitab beserta makanan, obat-obatan, dan layanan trauma healing. Penilaian teologis yang tepat adalah...",
+                    options: [
+                        "A. Kelompok A lebih rohani dibanding Kelompok B",
+                        "B. Kelompok B mewujudkan Injil secara utuh (holistik): menyentuh kebutuhan fisik, emosional, dan spiritual secara nyata",
+                        "C. Kelompok B melanggar ajaran gereja karena mengurus hal duniawi",
+                        "D. Kedua kelompok sama-sama salah"
+                    ],
+                    answer: 1,
+                    exp: "Pelayanan transformatif adalah pelayanan holistik (menyentuh seluruh dimensi kebutuhan manusia: fisik, emosi, dan rohani)."
+                },
+                {
+                    q: "Bagaimana cara mengevaluasi apakah sebuah kegiatan pelayanan remaja di gereja benar-benar membawa pembaharuan atau sekadar kegiatan rutin (formalitas)?",
+                    options: [
+                        "A. Diukur dari seberapa mahal anggaran yang dihabiskan",
+                        "B. Diukur dari adanya dampak perubahan karakter, pertumbuhan iman, dan kepedulian sosial peserta dalam kehidupan sehari-hari",
+                        "C. Diukur dari berapa banyak jumlah hadiah yang dibagikan",
+                        "D. Diukur dari lamanya durasi acara"
+                    ],
+                    answer: 1,
+                    exp: "Indikator utama keberhasilan Deep Learning & pelayanan gereja adalah dampak pembaruan karakter dan aksi nyata dalam kehidupan."
+                },
+                {
+                    q: "Gereja dipanggil untuk mewujudkan 'Shalom' (Damai Sejahtera utuh). Makna 'Shalom' dalam konteks hubungan antarmanusia dan alam adalah...",
+                    options: [
+                        "A. Keadaan tenang tanpa ada aktivitas apapun",
+                        "B. Terwujudnya keadilan, keharmonisan relasi dengan Tuhan, sesama manusia, dan keutuhan alam ciptaan",
+                        "C. Kejayaan politik satu kelompok tertentu",
+                        "D. Ketiadaan perang secara fisik semata"
+                    ],
+                    answer: 1,
+                    exp: "Shalom bukan sekadar tidak ada konflik, melainkan kondisi harmonis penuh keadilan dan kedamaian antara manusia dengan Tuhan, sesama, dan lingkungan."
+                }
+            ]
+        };
+
+        /* ==========================================================================
+           2. STATE MANAGEMENT GAME
+           ========================================================================== */
+        let gameState = {
+            playerName: "Siswa SMPN 12",
+            selectedLevel: "easy",
+            currentQuestionIdx: 0,
+            score: 0,
+            raceBonusScore: 0,
+            correctAnswersCount: 0,
+            questionsList: [],
+            isAnswered: false
+        };
+
+        /* ==========================================================================
+           3. UI ENGINE & NAVIGATION
+           ========================================================================== */
+        function showScreen(screenId) {
+            ['start-screen', 'race-screen', 'quiz-screen', 'score-screen'].forEach(id => {
+                const el = document.getElementById(id);
+                if (id === screenId) {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+        }
+
+        function selectLevel(lvl) {
+            const nameInput = document.getElementById('player-name').value.trim();
+            gameState.playerName = nameInput !== "" ? nameInput : "Siswa Kelas IX";
+            gameState.selectedLevel = lvl;
+            gameState.questionsList = [...quizDatabase[lvl]];
+            gameState.currentQuestionIdx = 0;
+            gameState.score = 0;
+            gameState.raceBonusScore = 0;
+            gameState.correctAnswersCount = 0;
+
+            showToast(`Selamat datang ${gameState.playerName}! Memulai Balapan Mini...`, 'fa-flag-checkered');
+            startRacePhase();
+        }
+
+        function showToast(text, iconClass = 'fa-circle-info') {
+            const toast = document.getElementById('toast-msg');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastText.innerText = text;
+            toastIcon.className = `fa-solid ${iconClass} text-amber-400 text-lg`;
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        /* ==========================================================================
+           4. MINI RACING GAME ENGINE (CANVAS)
+           ========================================================================== */
+        let raceCanvas, raceCtx;
+        let raceAnimationId;
+        let raceState = {
+            carX: 0,
+            carY: 0,
+            carSpeed: 4,
+            distance: 100,
+            score: 0,
+            obstacles: [],
+            coins: [],
+            keys: { left: false, right: false }
+        };
+
+        function startRacePhase() {
+            showScreen('race-screen');
+            document.getElementById('next-q-num').innerText = gameState.currentQuestionIdx + 1;
+
+            raceCanvas = document.getElementById('raceCanvas');
+            raceCtx = raceCanvas.getContext('2d');
+
+            // Responsive Canvas sizing
+            raceCanvas.width = 480;
+            raceCanvas.height = 270;
+
+            raceState.carX = raceCanvas.width / 2 - 15;
+            raceState.carY = raceCanvas.height - 50;
+            raceState.distance = 80; // Meters to finish race
+            raceState.score = 0;
+            raceState.obstacles = [];
+            raceState.coins = [];
+
+            // Event Listeners for Controls
+            window.removeEventListener('keydown', handleRaceKeyDown);
+            window.removeEventListener('keyup', handleRaceKeyUp);
+            window.addEventListener('keydown', handleRaceKeyDown);
+            window.addEventListener('keyup', handleRaceKeyUp);
+
+            setupTouchControls();
+
+            if (raceAnimationId) cancelAnimationFrame(raceAnimationId);
+            updateRaceGame();
+        }
+
+        function setupTouchControls() {
+            const btnLeft = document.getElementById('btn-left');
+            const btnRight = document.getElementById('btn-right');
+
+            btnLeft.ontouchstart = (e) => { e.preventDefault(); raceState.keys.left = true; };
+            btnLeft.ontouchend = (e) => { e.preventDefault(); raceState.keys.left = false; };
+            btnRight.ontouchstart = (e) => { e.preventDefault(); raceState.keys.right = true; };
+            btnRight.ontouchend = (e) => { e.preventDefault(); raceState.keys.right = false; };
+
+            btnLeft.onmousedown = () => raceState.keys.left = true;
+            btnLeft.onmouseup = () => raceState.keys.left = false;
+            btnRight.onmousedown = () => raceState.keys.right = true;
+            btnRight.onmouseup = () => raceState.keys.right = false;
+        }
+
+        function handleRaceKeyDown(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a') raceState.keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd') raceState.keys.right = true;
+        }
+
+        function handleRaceKeyUp(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a') raceState.keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd') raceState.keys.right = false;
+        }
+
+        function updateRaceGame() {
+            // Update Car Position
+            if (raceState.keys.left && raceState.carX > 80) {
+                raceState.carX -= 5;
+            }
+            if (raceState.keys.right && raceState.carX < raceCanvas.width - 110) {
+                raceState.carX += 5;
+            }
+
+            // Decrease distance
+            raceState.distance -= 0.15;
+            document.getElementById('race-distance').innerText = Math.max(0, Math.floor(raceState.distance));
+            document.getElementById('race-score').innerText = raceState.score;
+
+            // Spawn Obstacles & Coins
+            if (Math.random() < 0.03) {
+                raceState.obstacles.push({
+                    x: 90 + Math.random() * (raceCanvas.width - 180),
+                    y: -30,
+                    w: 25,
+                    h: 25,
+                    speed: 3 + Math.random() * 2
+                });
+            }
+
+            if (Math.random() < 0.04) {
+                raceState.coins.push({
+                    x: 90 + Math.random() * (raceCanvas.width - 180),
+                    y: -20,
+                    r: 8,
+                    speed: 3
+                });
+            }
+
+            // DRAWING
+            // 1. Road Background
+            raceCtx.fillStyle = '#334155';
+            raceCtx.fillRect(0, 0, raceCanvas.width, raceCanvas.height);
+
+            // Grass Sides
+            raceCtx.fillStyle = '#15803d';
+            raceCtx.fillRect(0, 0, 70, raceCanvas.height);
+            raceCtx.fillRect(raceCanvas.width - 70, 0, 70, raceCanvas.height);
+
+            // Road Lines
+            raceCtx.strokeStyle = '#f59e0b';
+            raceCtx.setLineDash([15, 15]);
+            raceCtx.lineWidth = 4;
+            raceCtx.beginPath();
+            raceCtx.moveTo(raceCanvas.width / 2, 0);
+            raceCtx.lineTo(raceCanvas.width / 2, raceCanvas.height);
+            raceCtx.stroke();
+            raceCtx.setLineDash([]);
+
+            // 2. Draw Car (Player)
+            raceCtx.fillStyle = '#ef4444'; // Red Car
+            raceCtx.fillRect(raceState.carX, raceState.carY, 24, 40);
+            raceCtx.fillStyle = '#38bdf8'; // Windshield
+            raceCtx.fillRect(raceState.carX + 3, raceState.carY + 10, 18, 10);
+            raceCtx.fillStyle = '#000'; // Wheels
+            raceCtx.fillRect(raceState.carX - 3, raceState.carY + 5, 4, 8);
+            raceCtx.fillRect(raceState.carX + 23, raceState.carY + 5, 4, 8);
+            raceCtx.fillRect(raceState.carX - 3, raceState.carY + 25, 4, 8);
+            raceCtx.fillRect(raceState.carX + 23, raceState.carY + 25, 4, 8);
+
+            // 3. Move & Draw Obstacles
+            for (let i = raceState.obstacles.length - 1; i >= 0; i--) {
+                let obs = raceState.obstacles[i];
+                obs.y += obs.speed;
+
+                raceCtx.fillStyle = '#64748b'; // Rock / Cone
+                raceCtx.beginPath();
+                raceCtx.arc(obs.x + 12, obs.y + 12, 12, 0, Math.PI * 2);
+                raceCtx.fill();
+
+                // Collision Check
+                if (
+                    raceState.carX < obs.x + obs.w &&
+                    raceState.carX + 24 > obs.x &&
+                    raceState.carY < obs.y + obs.h &&
+                    raceState.carY + 40 > obs.y
+                ) {
+                    raceState.score = Math.max(0, raceState.score - 10);
+                    raceState.obstacles.splice(i, 1);
+                    continue;
+                }
+
+                if (obs.y > raceCanvas.height) raceState.obstacles.splice(i, 1);
+            }
+
+            // 4. Move & Draw Coins
+            for (let i = raceState.coins.length - 1; i >= 0; i--) {
+                let coin = raceState.coins[i];
+                coin.y += coin.speed;
+
+                raceCtx.fillStyle = '#facc15'; // Gold Coin
+                raceCtx.beginPath();
+                raceCtx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+                raceCtx.fill();
+                raceCtx.strokeStyle = '#ca8a04';
+                raceCtx.stroke();
+
+                // Collision Check
+                let dist = Math.hypot((raceState.carX + 12) - coin.x, (raceState.carY + 20) - coin.y);
+                if (dist < coin.r + 15) {
+                    raceState.score += 20;
+                    raceState.coins.splice(i, 1);
+                    continue;
+                }
+
+                if (coin.y > raceCanvas.height) raceState.coins.splice(i, 1);
+            }
+
+            // Finish Condition
+            if (raceState.distance <= 0) {
+                cancelAnimationFrame(raceAnimationId);
+                gameState.raceBonusScore += raceState.score;
+                showToast(`Garis Finish! Bonus Balap: +${raceState.score} Pts`, 'fa-trophy');
+                setTimeout(() => {
+                    loadQuizQuestion();
+                }, 1000);
+                return;
+            }
+
+            raceAnimationId = requestAnimationFrame(updateRaceGame);
+        }
+
+        /* ==========================================================================
+           5. QUIZ LOGIC & SCORING
+           ========================================================================== */
+        function loadQuizQuestion() {
+            showScreen('quiz-screen');
+            gameState.isAnswered = false;
+
+            const qData = gameState.questionsList[gameState.currentQuestionIdx];
+
+            // Update Headers
+            document.getElementById('level-badge').innerText = `Level: ${gameState.selectedLevel.toUpperCase()}`;
+            document.getElementById('current-question-num').innerText = gameState.currentQuestionIdx + 1;
+            document.getElementById('current-score').innerText = gameState.score;
+
+            // Question Text
+            document.getElementById('question-text').innerText = qData.q;
+
+            // Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            document.getElementById('explanation-box').classList.add('hidden');
+
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn bg-white hover:bg-amber-50 text-slate-800 font-semibold p-4 rounded-xl border-2 border-slate-200 text-left transition shadow-sm text-xs md:text-sm flex items-start gap-3";
+                btn.innerHTML = `<span class="bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-xs">${String.fromCharCode(65 + idx)}</span> <span class="flex-1">${opt.substring(3)}</span>`;
+                btn.onclick = () => checkAnswer(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIdx, clickedBtn) {
+            if (gameState.isAnswered) return;
+            gameState.isAnswered = true;
+
+            const qData = gameState.questionsList[gameState.currentQuestionIdx];
+            const allOptionBtns = document.querySelectorAll('.option-btn');
+
+            allOptionBtns.forEach(btn => btn.disabled = true);
+
+            if (selectedIdx === qData.answer) {
+                // Correct Answer
+                clickedBtn.classList.remove('bg-white', 'border-slate-200');
+                clickedBtn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+                gameState.score += 100;
+                gameState.correctAnswersCount++;
+
+                document.getElementById('explanation-title').innerText = " Jawaban Benar!";
+                document.getElementById('explanation-title').className = "font-bold text-sm text-emerald-800";
+                
+                // Trigger Confetti effect
+                confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
+            } else {
+                // Wrong Answer
+                clickedBtn.classList.remove('bg-white', 'border-slate-200');
+                clickedBtn.classList.add('bg-rose-100', 'border-rose-500', 'text-rose-900');
+
+                // Highlight Correct One
+                allOptionBtns[qData.answer].classList.remove('bg-white', 'border-slate-200');
+                allOptionBtns[qData.answer].classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+
+                document.getElementById('explanation-title').innerText = " Jawaban Kurang Tepat";
+                document.getElementById('explanation-title').className = "font-bold text-sm text-rose-800";
+            }
+
+            document.getElementById('current-score').innerText = gameState.score;
+            document.getElementById('explanation-text').innerText = qData.exp;
+            document.getElementById('explanation-box').classList.remove('hidden');
+        }
+
+        function proceedToNextStep() {
+            gameState.currentQuestionIdx++;
+
+            if (gameState.currentQuestionIdx < gameState.questionsList.length) {
+                // Transition to race minigame before next question
+                startRacePhase();
+            } else {
+                // Quiz Completed
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            showScreen('score-screen');
+
+            const totalScore = gameState.score + gameState.raceBonusScore;
+            document.getElementById('player-display-name').innerText = `Nama Siswa / Kelompok: ${gameState.playerName}`;
+            document.getElementById('final-score-val').innerText = totalScore;
+            document.getElementById('correct-count').innerText = gameState.correctAnswersCount;
+            document.getElementById('race-bonus-val').innerText = gameState.raceBonusScore;
+
+            // Predicate Logic
+            let predicate = "SANGAT BAIK (A)";
+            if (totalScore < 600) predicate = "PERLU BANTUAN (D)";
+            else if (totalScore < 800) predicate = "CUKUP (C)";
+            else if (totalScore < 950) predicate = "BAIK (B)";
+
+            document.getElementById('grade-predicate').innerText = `PREDIKAT: ${predicate}`;
+            confetti({ particleCount: 100, spread: 80, origin: { y: 0.5 } });
+        }
+
+        function restartGame() {
+            showScreen('start-screen');
+        }
+
+        /* ==========================================================================
+           6. EXPORT / LINK SHARING & FULLSCREEN
+           ========================================================================== */
+        function copyShareableLink() {
+            const url = window.location.href;
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = url;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            showToast('Link game berhasil disalin! Siap dibagikan ke siswa/papan interaktif.', 'fa-link');
+        }
+
+        function exportResultJSON() {
+            const totalScore = gameState.score + gameState.raceBonusScore;
+            const reportData = {
+                sekolah: "UPT SPF SMPN 12 Makassar",
+                mataPelajaran: "Pendidikan Agama Kristen dan Budi Pekerti",
+                materi: "Bab 1: Gereja Wujud Karya Allah yang Membawa Perubahan",
+                tanggal: new Date().toLocaleDateString('id-ID'),
+                namaSiswa: gameState.playerName,
+                level: gameState.selectedLevel,
+                jawabanBenar: `${gameState.correctAnswersCount} / 10`,
+                skorKuis: gameState.score,
+                bonusBalapan: gameState.raceBonusScore,
+                totalNilaiAkhir: totalScore
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Laporan_Kuis_PAK_${gameState.playerName.replace(/\s+/g, '_')}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+
+            showToast('Laporan nilai kuis berhasil diunduh (Format JSON)!', 'fa-file-arrow-down');
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    showToast('Gagal masuk mode Layar Penuh', 'fa-triangle-exclamation');
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
